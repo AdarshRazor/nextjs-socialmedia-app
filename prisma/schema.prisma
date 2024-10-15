@@ -6,10 +6,38 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
   provider = "postgresql"
   url = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model User {
+  id String @id
+  username String @unique
+  displayName String
+  email String? @unique //in case using googleauth
+  passwordHash String? //same as above
+  googleId String? @unique
+  avatarUrl String?
+  bio String?
+  sessions Session []
+
+  createdAt DateTime @default(now())
+
+  // rename the model
+  @@map("users") //to save in the database as it should be in smallcase
+}
+
+model Session {
+  id String @id
+  userId String
+  expiresAt DateTime 
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade) //to get userId which reference the id from the User model, if we delete the user then no need to keep the session
+
+  //rename the model
+  @@map("sessions")
 }
